@@ -3,6 +3,7 @@ library(shiny)
 library(plyr)
 library(dplyr)
 library(ggplot2)
+library(AICcmodavg)
 
 # Download the Nenana River data if necessary, then load it into a
 # data frame
@@ -31,6 +32,55 @@ shinyServer(function(input, output) {
   # Create a table of the data
   output$table1 <- renderDataTable({ dfsel() })
   
+  # Fit a linear model to the selected data
+  fit.linear <- reactive({
+    if ("linear" %in% input$fitselect) {
+      my.fit <- lm(Julian.Date ~ Year,
+                   data=filter(df, Year>=input$year[1], Year<=input$year[2]))
+      my.fit
+    }
+  })
+  
+  # Fit a segmented model
+  # With the selected breakpoint, we create a variable that is either
+  # 0 or 1 if the year is before or after the breakpoint, respectively
+  fit.segment <- reactive({
+    if ("segment" %in% input$fitselect) {
+      dfit <- filter(dfsel(), Year>=input$year[1], Year<=input$year[2])
+      dfit$Year.Break <- pmax(0, dfit$Year-input$breakpoint)
+      my.fit <- lm(Julian.Date ~ Year + Year.Break, data=dfit)
+      my.fit
+    }
+  })
+  
+  # Print the summaries of the fitted models
+  model.summary <- reactive({
+    if ("linear" %in% input$fitselect) {
+      linear.summary <- summary(fit.linear())
+    } else {
+      linear.summary <- "Not selected"
+    }
+    if ("segment" %in% input$fitselect) {
+      segment.summary <- summary(fit.segment())
+    } else {
+      segment.summary <- "Not selected"
+    }
+    list("Linear trend"=linear.summary, "Segmented trend"=segment.summary)
+  })
+  output$fitsummary <- renderPrint(model.summary())
+  
+  # Compare the models
+  model.comparison <- reactive({
+    if (!("linear" %in% input$fitselect & "segment" %in% input$fitselect)) {
+      comp.out <- "Only one model selected"
+    } else {
+      comp.out <- aictab(list(fit1=fit.linear(), fit2=fit.segment()),
+                         modnames=c("Linear","Segmented"), sort=TRUE)   
+    }
+    comp.out
+  })
+  output$modelcomp <- renderPrint(model.comparison())
+  
   # Create a plot of the data points in the selected year range
   output$distPlot <- renderPlot({
     
@@ -39,6 +89,8 @@ shinyServer(function(input, output) {
     fig <- ggplot(dfplot, aes(x=Year, y=Julian.Date))
     fig <- fig + geom_point(size=2)
     fig <- fig + xlim(input$year)
+    fig <- fig + xlab("Year")
+    fig <- fig + ylab("Julian Date")
     
     print(fig)
   })

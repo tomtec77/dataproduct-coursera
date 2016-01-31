@@ -14,7 +14,12 @@ shinyUI(pageWithSidebar(
     sliderInput("year", "Year range",
                 1917, 2010, value=c(1917,2010), step=1, sep=""),
     
-    uiOutput("breakpointControl"),
+    conditionalPanel('input.tabselect == "Plot" | input.tabselect == "Summary"',                     
+                     checkboxGroupInput("fitselect",
+                                        "Select models to fit",
+                                        list("Linear trend"="linear",
+                                             "Segmented trend"="segment")),
+                     uiOutput("breakpointControl")),
     
     # Help text that only appears when the data browser tab is selected  
     conditionalPanel('input.tabselect === "Data Browser"',
@@ -25,7 +30,10 @@ shinyUI(pageWithSidebar(
     tabsetPanel(type="tabs", id="tabselect",
                 tabPanel("About"),
                 tabPanel("Plot",
-                         plotOutput("distPlot")),
+                         plotOutput("distPlot"),
+                         verbatimTextOutput("modelcomp")),
+                tabPanel("Summary",
+                         verbatimTextOutput("fitsummary")),
                 tabPanel("Data Browser",
                          dataTableOutput("table1"))
                 )
