@@ -92,6 +92,19 @@ shinyServer(function(input, output) {
     fig <- fig + xlab("Year")
     fig <- fig + ylab("Julian Date")
     
+    # Add the linear fit plot if selected
+    if ("linear" %in% input$fitselect) {
+      fig <- fig + geom_smooth(method="lm", se=FALSE, size=1.5)
+    }
+    
+    # Add the segmented fit plot if selected
+    if ("segment" %in% input$fitselect) {
+      dfplot$Year.Break <- pmax(0, dfplot$Year-input$breakpoint)
+      dfplot$SegmentPred <- predict.lm(fit.segment(), dfplot)
+      fig <- fig + geom_line(data=dfplot, aes(x=Year, y=SegmentPred), size=1.5,
+                             colour="firebrick")
+    }
+    
     print(fig)
   })
   

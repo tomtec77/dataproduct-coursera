@@ -50,7 +50,7 @@ possibility that the trend may be changing at some particular breakpoint
 year, which you can choose using the 'Segmented break point year' slider.
 Selected models will be shown in the plot with lines. If you select both,
 a text box will appear below the plot comparing them via the AIC
-criterion."
+criterion (Burnham & Anderson 2002)."
                         ),
                         h3("Summary"),
                         p(
