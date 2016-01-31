@@ -12,14 +12,22 @@ shinyUI(pageWithSidebar(
   
   sidebarPanel(
     sliderInput("year", "Year range",
-                1917, 2010, value=c(1917,2010), step=1)
+                1917, 2010, value=c(1917,2010), step=1, sep=""),
+    
+    uiOutput("breakpointControl"),
+    
+    # Help text that only appears when the data browser tab is selected  
+    conditionalPanel('input.tabselect === "Data Browser"',
+                     helpText("Click the column header to sort a column."))
   ),
-  
+
   mainPanel(
     tabsetPanel(type="tabs", id="tabselect",
                 tabPanel("About"),
                 tabPanel("Plot",
-                         plotOutput("distPlot"))
+                         plotOutput("distPlot")),
+                tabPanel("Data Browser",
+                         dataTableOutput("table1"))
                 )
   )
 ))

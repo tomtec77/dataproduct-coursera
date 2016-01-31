@@ -20,6 +20,17 @@ shinyServer(function(input, output) {
     colnames(dfsel) <- c("Year", "Julian.Date", "Date.Time")
     dfsel })
   
+  # Create a slider to select a breakpoint for the segmented linear model.
+  # This breakpoints needs to be within the selected year range
+  output$breakpointControl <- renderUI({
+    sliderInput("breakpoint", "Segmented model break point",
+                input$year[1]+1, input$year[2]-1,
+                floor((input$year[1]+input$year[2])/2), step=1, sep="")
+  })
+  
+  # Create a table of the data
+  output$table1 <- renderDataTable({ dfsel() })
+  
   # Create a plot of the data points in the selected year range
   output$distPlot <- renderPlot({
     
